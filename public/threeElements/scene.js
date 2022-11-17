@@ -216,7 +216,6 @@ function init() {
 
 
 
-	//const sphere = new THREE.SphereGeometry(0.5, 16, 8)
 	const light = new THREE.HemisphereLight(0xFFE6D3)
 	scene.add(light)
 
@@ -264,43 +263,46 @@ function init() {
 }
 
 function buildBooks() {
-	fetch("http://localhost:5002/books", {
-        method: "GET",
+	fetch(`http://localhost:5002/books`, {
+        method: "GET"
     })
 	.then((res) => res.json())
-	.then((data) => constructBooks(data, false)).catch((error) => console.log(error))
+	.then((data) => {
+		console.log(data)
+		constructBooks(data, false)
+	}).catch((error) => console.log(error))
 }
 
 export function constructBooks(data, fromDBQuery) {
+	console.log("data", data)
 	for (let i = 0; i < data.length; i++) {
 		loader.load( '../3DModels/book/book.glb', function ( gltf ) {
 			const newObject = gltf.scene.children[0].children[0].children[0];
 			newObject.scale.set(0.0025, 0.0025, 0.0025)
-			if (i%50 === 0) {
-				bookBand += 10
-			}
 
-			let x = Math.random() * ((bookBand + 5) - (bookBand - 5) + 1) + (bookBand - 5);
-			let z = Math.random() * ((bookBand + 5) - (bookBand - 5) + 1) + (bookBand - 5);
-			if (bookBand > 0) {
-				const ranges = [{max: bookBand, min: bookBand - 5}, {min: (-bookBand) + 5, max: -bookBand}]
-				console.log(ranges)
-				x = Math.random() * (ranges[0].max - ranges[1].max) + ranges[1].max
-				if (x < ranges[0].min && x > ranges[1].min) {
-					const randomRange = Math.floor(Math.random() * 2);
-					z = Math.random() * (ranges[randomRange].max - ranges[randomRange].min + 1) + ranges[randomRange].min
+			let posX, posY, posZ, rotX, rotY, rotZ;
+			console.log(data[i])
+			posX = data[i].Position.x
+			posY = data[i].Position.y
+			posZ = data[i].Position.z
+			rotX = data[i].Rotation.x
+			rotY = data[i].Rotation.y
+			rotZ = data[i].Rotation.z
+
+
+
+			newObject.position.x = posX
+			newObject.position.y = posY
+			newObject.position.z = posZ
+			newObject.userData = {
+				type: "Book",
+				bookData: {
+					id: data[i].id,
+					title: data[i].title
 				}
 			}
 
-			newObject.position.x = x
-			newObject.position.y = Math.random() * (3 - 1)+ 1;
-			newObject.position.z = z
-			newObject.userData = {
-				type: "Book",
-				bookData: data[i]
-			}
-
-			newObject.rotation.set(Math.random() * 45, Math.random() * 45, Math.random() * 45)
+			newObject.rotation.set(rotX, rotY, rotZ)
 			scene.add(newObject);
 			raycasterObjects.push(newObject)
 		}, undefined, function ( error ) {
