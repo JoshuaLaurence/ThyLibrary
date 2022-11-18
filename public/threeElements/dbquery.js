@@ -4,6 +4,7 @@ const bookContainer = document.getElementById("AddBookMenu")
 const bookForm = document.getElementById("AddBookForm")
 const bookTitle = document.getElementById("bookTitle"),
     author = document.getElementById("author")
+const URL = "https://thylibrary-backend.onrender.com"
 
 
 bookForm.addEventListener("submit", (event) => {
@@ -13,7 +14,7 @@ bookForm.addEventListener("submit", (event) => {
     }
     event.preventDefault()
     console.log("submitted")
-    fetch(`${process.env.URL}/books`, {
+    fetch(`${URL}/books`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
