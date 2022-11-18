@@ -1,12 +1,14 @@
+require("dotenv").config()
 const express = require("express")
 const app = express()
 const path = require("path")
+const port = process.env.PORT || 5001
 
 app.use(express.static(__dirname + "/public"))
 app.use("/build/", express.static(path.join(__dirname, "node_modules/three/build")))
 app.use("/jsm/", express.static(path.join(__dirname, "node_modules/three/examples/jsm")))
 
 
-app.listen(5001, () => {
-    console.log("Listening on port 5001")
+app.listen(port, () => {
+    console.log(`Listening on port ${port}`)
 })
