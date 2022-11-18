@@ -26,12 +26,19 @@
     <div id="LoadingScreen">
         <div class="LoadingScreenInnerContainer">
             <label class="LoadingLabel">Loading...</label>
+            <button class="LoadedButton">Start</button>
+            <div id="ProgressBarContainer">
+                <div id="ProgressBar">1%</div>
+            </div>
         </div>
     </div>
 
     <div id="InformationScreen">
         <div class="InformationScreenInnerContainer">
-            <label>Nice bit of quality info</label>
+            <label class="InformationTitle"></label>
+            <label class="InformationAuthor"></label>
+            <label class="InformationGenre"></label>
+            <label class="InformationDescription"></label>
         </div>
     </div>
 
@@ -46,11 +53,15 @@
         <button id="DismissBookMenuButton">B</button>
         <div class="BookFormContainer">
             <form id="AddBookForm">
-                <label for="bookTitle">Book Title:</label><br>
-                <input type="text" id="bookTitle" name="bookTitle"><br>
-                <label for="author">Author:</label><br>
+                <label for="bookTitle" class="AddBookLabel">Book Title:</label>
+                <input type="text" id="bookTitle" name="bookTitle">
+                <label for="author" class="AddBookLabel">Author:</label>
                 <input type="text" id="author" name="author">
                 <input type="submit" id="sumbitBookAddition">
+                <label for="genreTitle" class="AddBookLabel">Genre:</label>
+                <input type="text" id="genre" name="genre">
+                <lable for="description" class="AddBookLabel">Description:</label>
+                <textarea type="text" id="description" name="description"></textarea>
             </form>
         </div>
     </div>

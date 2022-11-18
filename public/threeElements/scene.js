@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { PointerLockControls } from '../jsm/controls/PointerLockControls.js';
 import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 import { FontLoader } from "../jsm/loaders/FontLoader.js";
-import {TextGeometry} from "../jsm/geometries/TextGeometry.js"
+//import {TextGeometry} from "../jsm/geometries/TextGeometry.js"
 import {Sky} from "../jsm/objects/Sky.js"
 import { Vector3 } from "three";
 
@@ -34,23 +34,54 @@ const pauseMenu = document.getElementById("PausedMenu")
 const addBookMenu = document.getElementById("AddBookMenu")
 const dismissAddBookMenu = document.getElementById("DismissBookMenuButton")
 const loadingScreen = document.getElementById("LoadingScreen")
+const loadedButton = document.getElementsByClassName("LoadedButton")[0]
+const loadingBar = document.getElementById("ProgressBar")
+const loadingBarContainer = document.getElementById("ProgressBarContainer")
+const loadingString = document.getElementsByClassName("LoadingLabel")[0]
 const permanentText = document.getElementsByClassName("PermanentTextBox")[0]
 const informationScreen = document.getElementById("InformationScreen")
 //const fadeIn = document.querySelector(".fadeIn")
+const wittyLoadingMessages = [
+	"Assembling Poorly Built Code...",
+	"Engaging In Wizardry...",
+	"Building Stuff...",
+	"Downloading More RAM...",
+	"Feeding unicorns...",
+	"TODO: Insert elevator music...",
+	"Running with scissors...",
+	"Reversing the shield polarity...",
+]
 
+window.addEventListener("onunload", function(e){
+	console.log("unloading")
+	controls.unlock()
+}, false);
+
+document.addEventListener("visibilitychange", function(e) {
+	controls.unlock()
+})
 
 manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+	loadingScreen.style.display = "block"
+	pauseMenu.style.display = "none"
+	loadedButton.style.display = "none"
+	loadingString.innerText = wittyLoadingMessages[Math.floor(Math.random() * wittyLoadingMessages.length)]
 	console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 };
 
 manager.onLoad = function ( ) {
 	console.log("DONE")
-	controls.lock()
+	loadedButton.style.display = "block";
+	loadingBarContainer.style.display = "none";
+	loadingString.innerText = "Ready To Go!"
 	animate()
 };
 
 
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+	const total = Math.floor(itemsLoaded/itemsTotal * 100)
+	loadingBar.style.width = `${total}%`
+	loadingBar.innerText = `${total}%`
 	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 };
 
@@ -79,6 +110,11 @@ function init() {
 	camera.scale.set(0.1, 0.1, 0.1)
 	controls = new PointerLockControls(camera, renderer.domElement)
 	controls.lock()
+
+	loadedButton.addEventListener("click", (event) => {
+		loadingScreen.style.display = "none";
+		controls.lock()
+	})
 
 	dismissAddBookMenu.addEventListener("click", (event) => {
 		addBookMenu.style.display = "none"
@@ -111,7 +147,7 @@ function init() {
 	} );
 
 	controls.addEventListener('unlock', function () {
-		if (window.getComputedStyle(addBookMenu, null).display === "none" && window.getComputedStyle(informationScreen, null).display === "none") {
+		if (window.getComputedStyle(addBookMenu, null).display === "none" && window.getComputedStyle(informationScreen, null).display === "none" && window.getComputedStyle(loadingScreen, null).display === "none" && moveToCamera[0] === false) {
 			pauseMenu.style.display = 'block';
 		}
 	} );
@@ -263,7 +299,7 @@ function init() {
 }
 
 function buildBooks() {
-	fetch(`http://localhost:5002/books`, {
+	fetch(`${process.env.URL}/books`, {
         method: "GET"
     })
 	.then((res) => res.json())
@@ -282,12 +318,12 @@ export function constructBooks(data, fromDBQuery) {
 
 			let posX, posY, posZ, rotX, rotY, rotZ;
 			console.log(data[i])
-			posX = data[i].Position.x
-			posY = data[i].Position.y
-			posZ = data[i].Position.z
-			rotX = data[i].Rotation.x
-			rotY = data[i].Rotation.y
-			rotZ = data[i].Rotation.z
+			posX = data[i].position.x
+			posY = data[i].position.y
+			posZ = data[i].position.z
+			rotX = data[i].rotation.x
+			rotY = data[i].rotation.y
+			rotZ = data[i].rotation.z
 
 
 
@@ -297,7 +333,7 @@ export function constructBooks(data, fromDBQuery) {
 			newObject.userData = {
 				type: "Book",
 				bookData: {
-					id: data[i].id,
+					id: data[i]._id,
 					title: data[i].title
 				}
 			}
@@ -329,15 +365,34 @@ function renderObjects() {
 	}
 }
 
+function displayInformationFetch(id) {
+	fetch(`${process.env.URL}/books/${id}`)
+		.then((res) => res.json()).then((data) => displayInformation(data))
+}
+
+function displayInformation(data) {
+	const title = document.getElementsByClassName("InformationTitle")[0]
+	const author = document.getElementsByClassName("InformationAuthor")[0]
+	const genre = document.getElementsByClassName("InformationGenre")[0]
+	const description = document.getElementsByClassName("InformationDescription")[0]
+
+
+	title.innerHTML = data.title;
+	author.innerHTML = data.author;
+	genre.innerHTML = data.genre;
+	description.innerHTML = data.description
+}
+
 function moveBookToCamera(delta, object) {
 	if (moveToCamera[1] === "toward") {
+		permanentText.style.visibility = "hidden"
 		const distanceFromCamera = 3;  // 3 units
 		const target = new THREE.Vector3(0, 0, -distanceFromCamera);
 		target.applyMatrix4(camera.matrixWorld);
 
 		const cameraRotation = camera.getWorldQuaternion(new THREE.Quaternion());
 
-		const moveSpeed = 15;  // units per second
+		const moveSpeed = 30;  // units per second
 		const distance = object.position.distanceTo(target);
 		if (distance > 0.01) {
 			const amount = Math.min(moveSpeed * delta, distance) / distance;
@@ -349,17 +404,20 @@ function moveBookToCamera(delta, object) {
 		} else {
 			controls.unlock()
 			informationScreen.style.display = "block"
+			displayInformationFetch(object.userData.bookData.id)
 			moveToCamera[1] = "away"
 			moveToCamera[0] = false
 		//cube.material.color.set('red');
 		}
 	} else if (moveToCamera[1] === "away") {
+		permanentText.style.visibility = "visible"
 		const movementTarget = moveToCamera[2];
 		const rotationTarget = moveToCamera[3]
 		//const rotationTarget = moveToCamera[3]
-		const moveSpeed = 15;  // units per second
+		const moveSpeed = 45;  // units per second
 		const distance = object.position.distanceTo(movementTarget);
 		if (distance > 0) {
+			//controls.unlock()
 			const amount = Math.min(moveSpeed * delta, distance) / distance;
 			object.quaternion.slerp(rotationTarget, amount)
 			object.position.lerp(movementTarget, amount);
@@ -422,6 +480,8 @@ function animate() {
 							console.log("old position", specificIntersection.object.position)
 							const pos = specificIntersection.object.getWorldPosition(new THREE.Vector3())
 							const rot = specificIntersection.object.getWorldQuaternion(new THREE.Quaternion())
+							permanentText.style.visibility = "visible";
+							console.log(permanentText.style.visibility)
 							moveToCamera.push(pos, rot)
 							console.log("old position", moveToCamera[2])
 						}
