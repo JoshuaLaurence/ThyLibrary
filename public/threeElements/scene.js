@@ -25,6 +25,8 @@ let moveToCamera = [false, "toward"]
 let sun, sky, sunRayleigh, sunElevation;
 let previousTime = performance.now();
 
+let startingLoad = true;
+
 const center = new THREE.Vector2(0,0)
 const velocity = new THREE.Vector3();
 const direction = new THREE.Vector3();
@@ -63,27 +65,33 @@ document.addEventListener("visibilitychange", function(e) {
 })
 
 manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
-	loadingScreen.style.display = "block"
-	pauseMenu.style.display = "none"
-	loadedButton.style.display = "none"
-	loadingString.innerText = wittyLoadingMessages[Math.floor(Math.random() * wittyLoadingMessages.length)]
-	console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+	if (startingLoad) {
+		loadingScreen.style.display = "block"
+		pauseMenu.style.display = "none"
+		loadedButton.style.display = "none"
+		loadingString.innerText = wittyLoadingMessages[Math.floor(Math.random() * wittyLoadingMessages.length)]
+		console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+	}
 };
 
 manager.onLoad = function ( ) {
-	console.log("DONE")
-	loadedButton.style.display = "block";
-	loadingBarContainer.style.display = "none";
-	loadingString.innerText = "Ready To Go!"
-	animate()
+	if (startingLoad) {
+		console.log("DONE")
+		loadedButton.style.display = "block";
+		loadingBarContainer.style.display = "none";
+		loadingString.innerText = "Ready To Go!"
+		animate()
+	}
 };
 
 
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
-	const total = Math.floor(itemsLoaded/itemsTotal * 100)
-	loadingBar.style.width = `${total}%`
-	loadingBar.innerText = `${total}%`
-	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+	if (startingLoad) {
+		const total = Math.floor(itemsLoaded/itemsTotal * 100)
+		loadingBar.style.width = `${total}%`
+		loadingBar.innerText = `${total}%`
+		console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+	}
 };
 
 manager.onError = function ( url ) {
@@ -311,6 +319,9 @@ function buildBooks() {
 }
 
 export function constructBooks(data, fromDBQuery) {
+	if (fromDBQuery) {
+		startingLoad = false;
+	}
 	console.log("data", data)
 	loader.load( '../3DModels/book/book.glb', function ( gltf ) {
 		const bookObject = gltf.scene.children[0].children[0].children[0];
@@ -323,6 +334,9 @@ export function constructBooks(data, fromDBQuery) {
 }
 
 function constructBooksLogic(data, fromDBQuery, bookObject) {
+	if (fromDBQuery) {
+		controls.lock()
+	}
 	for (let i = 0; i < data.length; i++) {
 		const newObject = bookObject.clone()
 		console.log("newObject", newObject)
@@ -353,10 +367,6 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		newObject.rotation.set(rotX, rotY, rotZ)
 		scene.add(newObject);
 		raycasterObjects.push(newObject)
-	}
-
-	if (fromDBQuery) {
-		controls.lock()
 	}
 }
 
