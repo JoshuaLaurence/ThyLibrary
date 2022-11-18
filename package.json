@@ -18,5 +18,11 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
+  },
+  "eslintConfig": {
+    "env": {
+        "browser": true,
+        "node": true
+    }
   }
 }
