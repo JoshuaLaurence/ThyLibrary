@@ -318,12 +318,12 @@ export function constructBooks(data, fromDBQuery) {
 
 			let posX, posY, posZ, rotX, rotY, rotZ;
 			console.log(data[i])
-			posX = data[i].Position.x
-			posY = data[i].Position.y
-			posZ = data[i].Position.z
-			rotX = data[i].Rotation.x
-			rotY = data[i].Rotation.y
-			rotZ = data[i].Rotation.z
+			posX = data[i].position.x
+			posY = data[i].position.y
+			posZ = data[i].position.z
+			rotX = data[i].rotation.x
+			rotY = data[i].rotation.y
+			rotZ = data[i].rotation.z
 
 
 
@@ -333,7 +333,7 @@ export function constructBooks(data, fromDBQuery) {
 			newObject.userData = {
 				type: "Book",
 				bookData: {
-					id: data[i].id,
+					id: data[i]._id,
 					title: data[i].title
 				}
 			}
