@@ -14,6 +14,7 @@ let moveForward = false,
 	moveBackward = false,
 	moveLeft = false,
 	moveRight = false;
+let URL = "https://thylibrary-backend.onrender.com" //Change if running on local machine
 let raycasterObjects = [], excludedObjects = [];
 let time;
 let bookBand;
@@ -299,7 +300,7 @@ function init() {
 }
 
 function buildBooks() {
-	fetch(`${process.env.URL}/books`, {
+	fetch(`${URL}/books`, {
         method: "GET"
     })
 	.then((res) => res.json())
@@ -366,7 +367,7 @@ function renderObjects() {
 }
 
 function displayInformationFetch(id) {
-	fetch(`${process.env.URL}/books/${id}`)
+	fetch(`${URL}/books/${id}`)
 		.then((res) => res.json()).then((data) => displayInformation(data))
 }
 
