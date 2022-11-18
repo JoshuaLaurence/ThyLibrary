@@ -312,45 +312,52 @@ function buildBooks() {
 
 export function constructBooks(data, fromDBQuery) {
 	console.log("data", data)
+	loader.load( '../3DModels/book/book.glb', function ( gltf ) {
+		const bookObject = gltf.scene.children[0].children[0].children[0];
+		console.log("bookObject", bookObject)
+
+		constructBooksLogic(data, fromDBQuery, bookObject)
+	}, undefined, function ( error ) {
+		console.error( error );
+	})
+}
+
+function constructBooksLogic(data, fromDBQuery, bookObject) {
 	for (let i = 0; i < data.length; i++) {
-		loader.load( '../3DModels/book/book.glb', function ( gltf ) {
-			const newObject = gltf.scene.children[0].children[0].children[0];
-			newObject.scale.set(0.0025, 0.0025, 0.0025)
+		const newObject = bookObject.clone()
+		console.log("newObject", newObject)
+		newObject.scale.set(0.0025, 0.0025, 0.0025)
 
-			let posX, posY, posZ, rotX, rotY, rotZ;
-			console.log(data[i])
-			posX = data[i].position.x
-			posY = data[i].position.y
-			posZ = data[i].position.z
-			rotX = data[i].rotation.x
-			rotY = data[i].rotation.y
-			rotZ = data[i].rotation.z
+		let posX, posY, posZ, rotX, rotY, rotZ;
+		console.log(data[i])
+		posX = data[i].position.x
+		posY = data[i].position.y
+		posZ = data[i].position.z
+		rotX = data[i].rotation.x
+		rotY = data[i].rotation.y
+		rotZ = data[i].rotation.z
 
 
 
-			newObject.position.x = posX
-			newObject.position.y = posY
-			newObject.position.z = posZ
-			newObject.userData = {
-				type: "Book",
-				bookData: {
-					id: data[i]._id,
-					title: data[i].title
-				}
+		newObject.position.x = posX
+		newObject.position.y = posY
+		newObject.position.z = posZ
+		newObject.userData = {
+			type: "Book",
+			bookData: {
+				id: data[i]._id,
+				title: data[i].title
 			}
+		}
 
-			newObject.rotation.set(rotX, rotY, rotZ)
-			scene.add(newObject);
-			raycasterObjects.push(newObject)
-		}, undefined, function ( error ) {
-			console.error( error );
-		} );
+		newObject.rotation.set(rotX, rotY, rotZ)
+		scene.add(newObject);
+		raycasterObjects.push(newObject)
 	}
 
 	if (fromDBQuery) {
 		controls.lock()
 	}
-
 }
 
 function renderObjects() {
