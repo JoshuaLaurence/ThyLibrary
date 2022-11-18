@@ -299,7 +299,7 @@ function init() {
 }
 
 function buildBooks() {
-	fetch(`http://localhost:5002/books`, {
+	fetch(`${process.env.URL}/books`, {
         method: "GET"
     })
 	.then((res) => res.json())
@@ -366,7 +366,7 @@ function renderObjects() {
 }
 
 function displayInformationFetch(id) {
-	fetch(`http://localhost:5002/books/${id}`)
+	fetch(`${process.env.URL}/books/${id}`)
 		.then((res) => res.json()).then((data) => displayInformation(data))
 }
 

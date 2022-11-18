@@ -13,7 +13,7 @@ bookForm.addEventListener("submit", (event) => {
     }
     event.preventDefault()
     console.log("submitted")
-    fetch("http://localhost:5002/books", {
+    fetch(`${process.env.URL}/books`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
