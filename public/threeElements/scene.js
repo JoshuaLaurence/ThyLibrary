@@ -321,7 +321,7 @@ function buildBooks() {
 export function constructBooks(data, fromDBQuery) {
 	if (fromDBQuery) {
 		startingLoad = false;
-	}
+	}de
 	console.log("data", data)
 	loader.load( '../3DModels/book/book.glb', function ( gltf ) {
 		const bookObject = gltf.scene.children[0].children[0].children[0];
