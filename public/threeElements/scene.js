@@ -4,7 +4,7 @@ import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 import { FontLoader } from "../jsm/loaders/FontLoader.js";
 //import {TextGeometry} from "../jsm/geometries/TextGeometry.js"
 import {Sky} from "../jsm/objects/Sky.js"
-import { Vector3 } from "three";
+import { DirectionalLight, Vector3 } from "three";
 
 //import { DragControls } from './jsm/controls/DragControls.js'
 
@@ -14,6 +14,8 @@ let moveForward = false,
 	moveBackward = false,
 	moveLeft = false,
 	moveRight = false;
+let globalTimeOfDay;
+let flashlight;
 let URL = "https://thylibrary-backend.onrender.com" //Change if running on local machine
 let raycasterObjects = [], excludedObjects = [];
 let time;
@@ -118,9 +120,10 @@ function init() {
 	console.log(renderer.getPixelRatio())
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 0.5
+	renderer.toneMappingExposure = 0.75;
 	renderer.outputEncoding = THREE.sRGBEncoding;
 	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.PCFSoftShadowMap
 	document.body.appendChild( renderer.domElement );
 
 	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 500)
@@ -279,10 +282,13 @@ function init() {
 	crosshair.scale.set(0.01, 0.01, 0.01)
 
 	const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-	const material = new THREE.MeshBasicMaterial( { color: 0x123456 , wireframe: false} );
+	//const material = new THREE.MeshBasicMaterial({color: 0xf0f0f0})
+	const cubeTexture = new THREE.TextureLoader().load("../3DModels/cube/cube-texture.png")
+	const material = new THREE.MeshPhongMaterial( {map: cubeTexture, shininess: 80.0, specular: 0x444444} );
 	cube = new THREE.Mesh( geometry, material );
 	cube.position.y = 2
 	cube.castShadow = true
+	cube.receiveShadow = true
 	cube.geometry.computeBoundingBox()
 	cube.geometry.computeBoundingSphere()
 
@@ -301,6 +307,7 @@ function init() {
 		gltf.scene.position.set(0,-0.031,0)
 		gltf.scene.rotation.set(0,-90,0)
 		gltf.scene.recieveShadow = true
+		gltf.scene.castShadow = true
 		scene.add(gltf.scene)
 		raycasterObjects.push(gltf.scene)
 	}, function ( xhr ) {
@@ -311,11 +318,14 @@ function init() {
 
 
 	light = new THREE.HemisphereLight(0xFFE6D3)
+	light.intensity = 1;
 	scene.add(light)
 
 	const directionalLight = new THREE.DirectionalLight(0xffffff)
-	light.power = 10;
+	directionalLight.power = 0.5;
 	//scene.add(directionalLight)
+	//scene.add(directionalLight.target)
+	directionalLight.target.position.set(0.5,0.5,0.5)
 
 	const planegeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1)
 	const floorTextureBase = new THREE.TextureLoader().load("../3DModels/floor/textures/floor_texture_baseColor.png")
@@ -337,7 +347,9 @@ function init() {
 
 	const planematerial = new THREE.MeshStandardMaterial( {
 		color: 0xf0f0f0,
-		map: floorTextureBase
+		map: floorTextureBase,
+		normalMap: floorTextureNormal,
+		roughness: floorTextureRoughness
 	});
 	const plane = new THREE.Mesh(planegeometry, planematerial)
 	plane.position.y = 0.0
@@ -516,6 +528,11 @@ function animate() {
 
 	const delta = ( time - previousTime ) / 1000;
 
+	if(globalTimeOfDay === "night") {
+		console.log("night")
+		//flashlight.quaternion.slerp(camera.getWorldQuaternion(new THREE.Quaternion()), delta)
+	}
+
 	//renderObjects()
 	//moveSun()
 	if (controls.isLocked === true) {
@@ -612,6 +629,7 @@ function setSky() {
 function changeDaylight(timeOfDay) {
 	const uniforms = sky.material.uniforms
 	let elevation;
+	globalTimeOfDay = timeOfDay
 	switch (timeOfDay) {
 		case "daylight":
 			console.log("day")
@@ -641,6 +659,14 @@ function changeDaylight(timeOfDay) {
 			elevation = 30
 			light.intensity = 0.01
 			renderer.toneMappingExposure = 0.2
+			flashlight = new THREE.SpotLight(0xffffff, 1, 200)
+			flashlight.position.set(0,0,6)
+			flashlight.castShadow = true
+			flashlight.target = camera
+			camera.add(flashlight)
+			//camera.add(flashlight.target)
+			// flashlight.position.set(0,0,1)
+			// flashlight.lookAt(camera)
 			break
 		default:
 			break
