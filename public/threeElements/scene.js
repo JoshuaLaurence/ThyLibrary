@@ -43,9 +43,11 @@ const loadingBarContainer = document.getElementById("ProgressBarContainer")
 const loadingString = document.getElementsByClassName("LoadingLabel")[0]
 const permanentText = document.getElementsByClassName("PermanentTextBox")[0]
 const informationScreen = document.getElementById("InformationScreen")
+
 const settingsScreen = document.getElementById("SettingsPage")
 const settingsButton = document.getElementsByClassName("OpenSettingsPage")[0]
 const settingsInternalScreen = document.getElementsByClassName("SettingsPageInternal")[0]
+const settingsResolutionSlider = document.getElementById("ResolutionSlider")
 //const fadeIn = document.querySelector(".fadeIn")
 const wittyLoadingMessages = [
 	"Assembling Poorly Built Code...",
@@ -112,6 +114,7 @@ function init() {
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio( window.devicePixelRatio );
+	console.log(renderer.getPixelRatio())
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	renderer.outputEncoding = THREE.sRGBEncoding;
 	renderer.shadowMap.enabled = true;
@@ -149,6 +152,18 @@ function init() {
 	settingsButton.addEventListener("click", (event) => {
 		settingsInternalScreen.classList.toggle("collapse")
 	})
+	settingsResolutionSlider.addEventListener("input", (event) => {
+		document.getElementById("ResolutionSliderLabel").innerText = `Resolution: ${settingsResolutionSlider.value}x`
+		console.log(settingsResolutionSlider.value)
+		renderer.setPixelRatio(window.devicePixelRatio * settingsResolutionSlider.value)
+		renderer.render(scene, camera)
+		console.log(renderer.getPixelRatio())
+	})
+	// settingsResolutionSlider.addEventListener("change", (event) => {
+	// 	document.getElementById("ResolutionSliderLabel").innerText = `Resolution: ${settingsResolutionSlider.value}x`
+	// 	renderer.setPixelRatio(window.devicePixelRatio * settingsResolutionSlider.value)
+	// 	renderer.render(scene, camera)
+	// })
 	// addBookMenu.addEventListener("keypress", (event) => {
 	// 	console.log("keypressed")
 	// 	if (event.key === "Escape") {
