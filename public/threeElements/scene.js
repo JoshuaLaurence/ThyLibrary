@@ -43,6 +43,9 @@ const loadingBarContainer = document.getElementById("ProgressBarContainer")
 const loadingString = document.getElementsByClassName("LoadingLabel")[0]
 const permanentText = document.getElementsByClassName("PermanentTextBox")[0]
 const informationScreen = document.getElementById("InformationScreen")
+const settingsScreen = document.getElementById("SettingsPage")
+const settingsButton = document.getElementsByClassName("OpenSettingsPage")[0]
+const settingsInternalScreen = document.getElementsByClassName("SettingsPageInternal")[0]
 //const fadeIn = document.querySelector(".fadeIn")
 const wittyLoadingMessages = [
 	"Assembling Poorly Built Code...",
@@ -137,6 +140,14 @@ function init() {
 	informationScreen.addEventListener("click", (event) => {
 		moveToCamera[0] = true;
 		controls.lock()
+	})
+
+	settingsScreen.addEventListener("click", (event) => {
+		event.stopPropagation()
+	})
+
+	settingsButton.addEventListener("click", (event) => {
+		settingsInternalScreen.classList.toggle("collapse")
 	})
 	// addBookMenu.addEventListener("keypress", (event) => {
 	// 	console.log("keypressed")
@@ -321,7 +332,7 @@ function buildBooks() {
 export function constructBooks(data, fromDBQuery) {
 	if (fromDBQuery) {
 		startingLoad = false;
-	}de
+	}
 	console.log("data", data)
 	loader.load( '../3DModels/book/book.glb', function ( gltf ) {
 		const bookObject = gltf.scene.children[0].children[0].children[0];
