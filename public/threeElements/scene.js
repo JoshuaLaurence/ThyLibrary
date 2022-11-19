@@ -283,8 +283,14 @@ function init() {
 
 	const geometry = new THREE.BoxGeometry( 1, 1, 1 );
 	//const material = new THREE.MeshBasicMaterial({color: 0xf0f0f0})
-	const cubeTexture = new THREE.TextureLoader().load("../3DModels/cube/cube-texture.png")
-	const material = new THREE.MeshPhongMaterial( {map: cubeTexture, shininess: 80.0, specular: 0x444444} );
+	const cubeBase = new THREE.TextureLoader().load("../3DModels/cube/chatka_fundamenty_baseColor.png")
+	const cubeRoughness = new THREE.TextureLoader().load("../3DModels/cube/chatka_fundamenty_metallicRoughness.png")
+	const cubeNormal = new THREE.TextureLoader().load("../3DModels/cube/chatka_fundamenty_normal.png")
+	const material = new THREE.MeshStandardMaterial( {
+		map: cubeBase,
+		normalMap: cubeNormal,
+		roughnessMap: cubeRoughness
+	})
 	cube = new THREE.Mesh( geometry, material );
 	cube.position.y = 2
 	cube.castShadow = true
