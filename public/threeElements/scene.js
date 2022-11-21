@@ -324,7 +324,7 @@ function init() {
 
 
 	light = new THREE.HemisphereLight(0xFFE6D3)
-	light.intensity = 1;
+	light.intensity = 0.7;
 	scene.add(light)
 
 	const directionalLight = new THREE.DirectionalLight(0xffffff)
@@ -644,7 +644,8 @@ function changeDaylight(timeOfDay) {
 			uniforms["mieCoefficient"].value = 0.09
 			uniforms["mieDirectionalG"].value = 0.97
 			elevation = 40
-			renderer.toneMappingExposure = 0.5
+			renderer.toneMappingExposure = 1
+			light.power = 3;
 			break
 		case "evening":
 			console.log("evening")
