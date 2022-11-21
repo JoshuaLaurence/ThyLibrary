@@ -62,18 +62,15 @@ const wittyLoadingMessages = [
 	"Running with scissors...",
 	"Reversing the shield polarity...",
 ]
+let loadingInterval;
 
-window.addEventListener("onunload", function(e){
-	console.log("unloading")
-	controls.unlock()
-}, false);
-
-document.addEventListener("visibilitychange", function(e) {
-	controls.unlock()
-})
+// document.addEventListener("visibilitychange", function(e) {
+// 	controls.unlock()
+// })
 
 manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 	if (startingLoad) {
+		controls.unlock()
 		loadingScreen.style.display = "block"
 		pauseMenu.style.display = "none"
 		loadedButton.style.display = "none"
@@ -82,15 +79,6 @@ manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 	}
 };
 
-manager.onLoad = function ( ) {
-	if (startingLoad) {
-		console.log("DONE")
-		loadedButton.style.display = "block";
-		loadingBarContainer.style.display = "none";
-		loadingString.innerText = "Ready To Go!"
-		animate()
-	}
-};
 
 
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
@@ -101,6 +89,19 @@ manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 		console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 	}
 };
+
+manager.onLoad = function (url, itemsLoaded, itemsTotal) {
+	if (startingLoad) {
+		loadingBar.innerText = "Fetching Data From Database"
+		loadingInterval = setInterval(() => {
+			if (loadingBar.innerText === "Fetching Data From Database...") {
+				loadingBar.innerText = "Fetching Data From Database"
+			} else {
+				loadingBar.innerText += "."
+			}
+		}, 500)
+	}
+}
 
 manager.onError = function ( url ) {
 	console.log( 'There was an error loading ' + url );
@@ -125,6 +126,7 @@ function init() {
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap
 	document.body.appendChild( renderer.domElement );
+
 
 	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 500)
 	camera.position.set(0, 1.5, -5);
@@ -168,15 +170,17 @@ function init() {
 		console.log(TOD)
 		switch (+TOD) {
 			case 1: {
-				console.log("case 1")
+				document.getElementById("TimeOfDayLabel").innerText = `Time Of Day: Daylight`
 				changeDaylight("daylight")
 				break
 			}
 			case 2: {
+				document.getElementById("TimeOfDayLabel").innerText = `Time Of Day: Evening`
 				changeDaylight("evening")
 				break
 			}
 			case 3: {
+				document.getElementById("TimeOfDayLabel").innerText = `Time Of Day: Night`
 				changeDaylight("night")
 				break
 			}
@@ -212,6 +216,24 @@ function init() {
 			pauseMenu.style.display = 'block';
 		}
 	} );
+
+
+	window.addEventListener("beforeunload", function(e){
+		controls.unlock()
+		e.preventDefault()
+		console.log("unloading")
+		return null
+	}, {capture: true});
+
+	document.addEventListener("visibilitychange", (event) => {
+		if (document.visibilityState === "visible") {
+			console.log("visible")
+			controls.lock()
+		} else {
+			console.log("hidden")
+			controls.unlock()
+		}
+	})
 
 	const keyDownEventListener = (event) => {
 		switch (event.key) {
@@ -305,9 +327,6 @@ function init() {
 	}
 	scene.add( cube );
 
-	bookBand = 0;
-	buildBooks()
-
 	loader.load("../3DModels/library-center/library_earthquake.glb", function (gltf) {
 		gltf.scene.scale.set(0.25, 0.25, 0.25)
 		gltf.scene.position.set(0,-0.031,0)
@@ -319,6 +338,9 @@ function init() {
 	}, function ( xhr ) {
 	}, function (error) {
 	})
+
+	bookBand = 0;
+	buildBooks()
 
 
 
@@ -393,7 +415,6 @@ export function constructBooks(data, fromDBQuery) {
 	loader.load( '../3DModels/book/book.glb', function ( gltf ) {
 		const bookObject = gltf.scene.children[0].children[0].children[0];
 		console.log("bookObject", bookObject)
-
 		constructBooksLogic(data, fromDBQuery, bookObject)
 	}, undefined, function ( error ) {
 		console.error( error );
@@ -434,6 +455,14 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		newObject.rotation.set(rotX, rotY, rotZ)
 		scene.add(newObject);
 		raycasterObjects.push(newObject)
+	}
+	if (startingLoad) {
+		clearInterval(loadingInterval)
+		console.log("DONE")
+		loadedButton.style.display = "block";
+		loadingBarContainer.style.display = "none";
+		loadingString.innerText = "Ready To Go!"
+		animate()
 	}
 }
 
