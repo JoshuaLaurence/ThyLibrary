@@ -63,17 +63,13 @@ const wittyLoadingMessages = [
 	"Reversing the shield polarity...",
 ]
 
-window.addEventListener("onunload", function(e){
-	console.log("unloading")
-	controls.unlock()
-}, false);
-
-document.addEventListener("visibilitychange", function(e) {
-	controls.unlock()
-})
+// document.addEventListener("visibilitychange", function(e) {
+// 	controls.unlock()
+// })
 
 manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 	if (startingLoad) {
+		controls.unlock()
 		loadingScreen.style.display = "block"
 		pauseMenu.style.display = "none"
 		loadedButton.style.display = "none"
@@ -82,15 +78,6 @@ manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 	}
 };
 
-manager.onLoad = function ( ) {
-	if (startingLoad) {
-		console.log("DONE")
-		loadedButton.style.display = "block";
-		loadingBarContainer.style.display = "none";
-		loadingString.innerText = "Ready To Go!"
-		animate()
-	}
-};
 
 
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
@@ -168,15 +155,17 @@ function init() {
 		console.log(TOD)
 		switch (+TOD) {
 			case 1: {
-				console.log("case 1")
+				document.getElementById("TimeOfDayLabel").innerText = `Time Of Day: Daylight`
 				changeDaylight("daylight")
 				break
 			}
 			case 2: {
+				document.getElementById("TimeOfDayLabel").innerText = `Time Of Day: Evening`
 				changeDaylight("evening")
 				break
 			}
 			case 3: {
+				document.getElementById("TimeOfDayLabel").innerText = `Time Of Day: Night`
 				changeDaylight("night")
 				break
 			}
@@ -212,6 +201,14 @@ function init() {
 			pauseMenu.style.display = 'block';
 		}
 	} );
+
+
+	window.addEventListener("beforeunload", function(e){
+		controls.unlock()
+		e.preventDefault()
+		console.log("unloading")
+		return null
+	}, {capture: true});
 
 	const keyDownEventListener = (event) => {
 		switch (event.key) {
@@ -405,6 +402,11 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		controls.lock()
 	}
 	for (let i = 0; i < data.length; i++) {
+		if (startingLoad) {
+			const total = Math.floor(i/data.length * 100)
+			loadingBar.style.width = `${total}%`
+			loadingBar.innerText = `${total}%`
+		}
 		const newObject = bookObject.clone()
 		console.log("newObject", newObject)
 		newObject.scale.set(0.0025, 0.0025, 0.0025)
@@ -434,6 +436,13 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		newObject.rotation.set(rotX, rotY, rotZ)
 		scene.add(newObject);
 		raycasterObjects.push(newObject)
+	}
+	if (startingLoad) {
+		console.log("DONE")
+		loadedButton.style.display = "block";
+		loadingBarContainer.style.display = "none";
+		loadingString.innerText = "Ready To Go!"
+		animate()
 	}
 }
 
