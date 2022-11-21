@@ -233,6 +233,7 @@ body { margin: 0; overflow: hidden; width:100%; height: 100%;}
     transition: 0.2s all;
     overflow-x: scroll;
     scrollbar-width: none;
+    margin-bottom: 15px;
 }
 
 .SettingsPageInternal > * {

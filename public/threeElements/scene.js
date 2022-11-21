@@ -62,6 +62,7 @@ const wittyLoadingMessages = [
 	"Running with scissors...",
 	"Reversing the shield polarity...",
 ]
+let loadingInterval;
 
 // document.addEventListener("visibilitychange", function(e) {
 // 	controls.unlock()
@@ -89,6 +90,19 @@ manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 	}
 };
 
+manager.onLoad = function (url, itemsLoaded, itemsTotal) {
+	if (startingLoad) {
+		loadingBar.innerText = "Fetching Data From Database"
+		loadingInterval = setInterval(() => {
+			if (loadingBar.innerText === "Fetching Data From Database...") {
+				loadingBar.innerText = "Fetching Data From Database"
+			} else {
+				loadingBar.innerText += "."
+			}
+		}, 500)
+	}
+}
+
 manager.onError = function ( url ) {
 	console.log( 'There was an error loading ' + url );
 };
@@ -112,6 +126,7 @@ function init() {
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap
 	document.body.appendChild( renderer.domElement );
+
 
 	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 500)
 	camera.position.set(0, 1.5, -5);
@@ -210,6 +225,16 @@ function init() {
 		return null
 	}, {capture: true});
 
+	document.addEventListener("visibilitychange", (event) => {
+		if (document.visibilityState === "visible") {
+			console.log("visible")
+			controls.lock()
+		} else {
+			console.log("hidden")
+			controls.unlock()
+		}
+	})
+
 	const keyDownEventListener = (event) => {
 		switch (event.key) {
 			case "w":
@@ -302,9 +327,6 @@ function init() {
 	}
 	scene.add( cube );
 
-	bookBand = 0;
-	buildBooks()
-
 	loader.load("../3DModels/library-center/library_earthquake.glb", function (gltf) {
 		gltf.scene.scale.set(0.25, 0.25, 0.25)
 		gltf.scene.position.set(0,-0.031,0)
@@ -316,6 +338,9 @@ function init() {
 	}, function ( xhr ) {
 	}, function (error) {
 	})
+
+	bookBand = 0;
+	buildBooks()
 
 
 
@@ -390,7 +415,6 @@ export function constructBooks(data, fromDBQuery) {
 	loader.load( '../3DModels/book/book.glb', function ( gltf ) {
 		const bookObject = gltf.scene.children[0].children[0].children[0];
 		console.log("bookObject", bookObject)
-
 		constructBooksLogic(data, fromDBQuery, bookObject)
 	}, undefined, function ( error ) {
 		console.error( error );
@@ -402,11 +426,6 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		controls.lock()
 	}
 	for (let i = 0; i < data.length; i++) {
-		if (startingLoad) {
-			const total = Math.floor(i/data.length * 100)
-			loadingBar.style.width = `${total}%`
-			loadingBar.innerText = `${total}%`
-		}
 		const newObject = bookObject.clone()
 		console.log("newObject", newObject)
 		newObject.scale.set(0.0025, 0.0025, 0.0025)
@@ -438,6 +457,7 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		raycasterObjects.push(newObject)
 	}
 	if (startingLoad) {
+		clearInterval(loadingInterval)
 		console.log("DONE")
 		loadedButton.style.display = "block";
 		loadingBarContainer.style.display = "none";
