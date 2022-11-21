@@ -4,16 +4,18 @@ import { GLTFLoader } from '../jsm/loaders/GLTFLoader.js';
 import { FontLoader } from "../jsm/loaders/FontLoader.js";
 //import {TextGeometry} from "../jsm/geometries/TextGeometry.js"
 import {Sky} from "../jsm/objects/Sky.js"
-import { Vector3 } from "three";
+import { DirectionalLight, Vector3 } from "three";
 
 //import { DragControls } from './jsm/controls/DragControls.js'
 
-let scene, renderer, camera, controls, cube, raycaster, textObject;
+let scene, renderer, camera, controls, cube, raycaster, light;
 let INTERSECTED = false;
 let moveForward = false,
 	moveBackward = false,
 	moveLeft = false,
 	moveRight = false;
+let globalTimeOfDay;
+let flashlight;
 let URL = "https://thylibrary-backend.onrender.com" //Change if running on local machine
 let raycasterObjects = [], excludedObjects = [];
 let time;
@@ -22,7 +24,7 @@ let font;
 
 let moveToCamera = [false, "toward"]
 
-let sun, sky, sunRayleigh, sunElevation;
+let sun, sky;
 let previousTime = performance.now();
 
 let startingLoad = true;
@@ -43,6 +45,12 @@ const loadingBarContainer = document.getElementById("ProgressBarContainer")
 const loadingString = document.getElementsByClassName("LoadingLabel")[0]
 const permanentText = document.getElementsByClassName("PermanentTextBox")[0]
 const informationScreen = document.getElementById("InformationScreen")
+
+const settingsScreen = document.getElementById("SettingsPage")
+const settingsButton = document.getElementsByClassName("OpenSettingsPage")[0]
+const settingsInternalScreen = document.getElementsByClassName("SettingsPageInternal")[0]
+const settingsResolutionSlider = document.getElementById("ResolutionSlider")
+const settingsTimeOfDaySlider = document.getElementById("TimeOfDay")
 //const fadeIn = document.querySelector(".fadeIn")
 const wittyLoadingMessages = [
 	"Assembling Poorly Built Code...",
@@ -109,9 +117,13 @@ function init() {
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.setPixelRatio( window.devicePixelRatio );
+	console.log(renderer.getPixelRatio())
 	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+	renderer.toneMappingExposure = 0.75;
 	renderer.outputEncoding = THREE.sRGBEncoding;
 	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.PCFSoftShadowMap
 	document.body.appendChild( renderer.domElement );
 
 	camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 1, 500)
@@ -138,6 +150,46 @@ function init() {
 		moveToCamera[0] = true;
 		controls.lock()
 	})
+
+	settingsScreen.addEventListener("click", (event) => {
+		event.stopPropagation()
+	})
+
+	settingsButton.addEventListener("click", (event) => {
+		settingsInternalScreen.classList.toggle("collapse")
+	})
+	settingsResolutionSlider.addEventListener("input", (event) => {
+		document.getElementById("ResolutionSliderLabel").innerText = `Resolution: ${settingsResolutionSlider.value}x`
+		renderer.setPixelRatio(window.devicePixelRatio * settingsResolutionSlider.value)
+		renderer.render(scene, camera)
+	})
+	settingsTimeOfDaySlider.addEventListener("input", (event) => {
+		const TOD = settingsTimeOfDaySlider.value
+		console.log(TOD)
+		switch (+TOD) {
+			case 1: {
+				console.log("case 1")
+				changeDaylight("daylight")
+				break
+			}
+			case 2: {
+				changeDaylight("evening")
+				break
+			}
+			case 3: {
+				changeDaylight("night")
+				break
+			}
+			default: {
+				break
+			}
+		}
+	})
+	// settingsResolutionSlider.addEventListener("change", (event) => {
+	// 	document.getElementById("ResolutionSliderLabel").innerText = `Resolution: ${settingsResolutionSlider.value}x`
+	// 	renderer.setPixelRatio(window.devicePixelRatio * settingsResolutionSlider.value)
+	// 	renderer.render(scene, camera)
+	// })
 	// addBookMenu.addEventListener("keypress", (event) => {
 	// 	console.log("keypressed")
 	// 	if (event.key === "Escape") {
@@ -230,10 +282,19 @@ function init() {
 	crosshair.scale.set(0.01, 0.01, 0.01)
 
 	const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-	const material = new THREE.MeshBasicMaterial( { color: 0x123456 , wireframe: false} );
+	//const material = new THREE.MeshBasicMaterial({color: 0xf0f0f0})
+	const cubeBase = new THREE.TextureLoader().load("../3DModels/cube/chatka_fundamenty_baseColor.png")
+	const cubeRoughness = new THREE.TextureLoader().load("../3DModels/cube/chatka_fundamenty_metallicRoughness.png")
+	const cubeNormal = new THREE.TextureLoader().load("../3DModels/cube/chatka_fundamenty_normal.png")
+	const material = new THREE.MeshStandardMaterial( {
+		map: cubeBase,
+		normalMap: cubeNormal,
+		roughnessMap: cubeRoughness
+	})
 	cube = new THREE.Mesh( geometry, material );
 	cube.position.y = 2
 	cube.castShadow = true
+	cube.receiveShadow = true
 	cube.geometry.computeBoundingBox()
 	cube.geometry.computeBoundingSphere()
 
@@ -252,6 +313,7 @@ function init() {
 		gltf.scene.position.set(0,-0.031,0)
 		gltf.scene.rotation.set(0,-90,0)
 		gltf.scene.recieveShadow = true
+		gltf.scene.castShadow = true
 		scene.add(gltf.scene)
 		raycasterObjects.push(gltf.scene)
 	}, function ( xhr ) {
@@ -261,12 +323,15 @@ function init() {
 
 
 
-	const light = new THREE.HemisphereLight(0xFFE6D3)
+	light = new THREE.HemisphereLight(0xFFE6D3)
+	light.intensity = 0.7;
 	scene.add(light)
 
 	const directionalLight = new THREE.DirectionalLight(0xffffff)
-	light.power = 10;
+	directionalLight.power = 0.5;
 	//scene.add(directionalLight)
+	//scene.add(directionalLight.target)
+	directionalLight.target.position.set(0.5,0.5,0.5)
 
 	const planegeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1)
 	const floorTextureBase = new THREE.TextureLoader().load("../3DModels/floor/textures/floor_texture_baseColor.png")
@@ -288,7 +353,9 @@ function init() {
 
 	const planematerial = new THREE.MeshStandardMaterial( {
 		color: 0xf0f0f0,
-		map: floorTextureBase
+		map: floorTextureBase,
+		normalMap: floorTextureNormal,
+		roughness: floorTextureRoughness
 	});
 	const plane = new THREE.Mesh(planegeometry, planematerial)
 	plane.position.y = 0.0
@@ -467,6 +534,11 @@ function animate() {
 
 	const delta = ( time - previousTime ) / 1000;
 
+	if(globalTimeOfDay === "night") {
+		console.log("night")
+		//flashlight.quaternion.slerp(camera.getWorldQuaternion(new THREE.Quaternion()), delta)
+	}
+
 	//renderObjects()
 	//moveSun()
 	if (controls.isLocked === true) {
@@ -545,7 +617,6 @@ function setSky() {
 	excludedObjects.push(sky)
 
 	sun = new THREE.Vector3();
-	sunElevation = 0.3;
 
 	const uniforms = sky.material.uniforms;
 	uniforms[ 'turbidity' ].value = 10;
@@ -553,7 +624,7 @@ function setSky() {
 	uniforms[ 'mieCoefficient' ].value = 0.005;
 	uniforms[ 'mieDirectionalG' ].value = 0.7;
 
-	const phi = THREE.MathUtils.degToRad( 90 - sunElevation);
+	const phi = THREE.MathUtils.degToRad( 90 - 0.3);
 	const theta = THREE.MathUtils.degToRad( 180 );
 
 	sun.setFromSphericalCoords( 1, phi, theta );
@@ -561,18 +632,60 @@ function setSky() {
 	uniforms[ 'sunPosition' ].value.copy( sun )
 }
 
-function moveSun() {
-	if (Math.floor(time/1000) > Math.floor(previousTime/1000)) {
-
-		sky.material.uniforms["rayleigh"].value -= 0.1
-		sunElevation += 1
-		const phi = THREE.MathUtils.degToRad( 90 - sunElevation);
-		const theta = THREE.MathUtils.degToRad( 180 );
-
-		sun.setFromSphericalCoords( 1, phi, theta )
-
-		console.log(`Sun Moved, ${sun.object}`)
+function changeDaylight(timeOfDay) {
+	const uniforms = sky.material.uniforms
+	let elevation;
+	globalTimeOfDay = timeOfDay
+	switch (timeOfDay) {
+		case "daylight":
+			console.log("day")
+			uniforms["turbidity"].value = 0.6
+			uniforms["rayleigh"].value = 0.5
+			uniforms["mieCoefficient"].value = 0.09
+			uniforms["mieDirectionalG"].value = 0.97
+			elevation = 40
+			renderer.toneMappingExposure = 1
+			light.power = 3;
+			break
+		case "evening":
+			console.log("evening")
+			uniforms[ 'turbidity' ].value = 10;
+			uniforms[ 'rayleigh' ].value = 3;
+			uniforms[ 'mieCoefficient' ].value = 0.005;
+			uniforms[ 'mieDirectionalG' ].value = 0.7;
+			elevation = 0.3
+			light.intensity = 0.7
+			renderer.toneMappingExposure = 0.5
+			break
+		case "night":
+			console.log("night")
+			uniforms["mieDirectionalG"].value = 0.9999999
+			uniforms[ 'turbidity' ].value = 20;
+			uniforms[ 'rayleigh' ].value = 0;
+			uniforms[ 'mieCoefficient' ].value = 0.1;
+			elevation = 30
+			light.intensity = 0.01
+			renderer.toneMappingExposure = 0.2
+			flashlight = new THREE.SpotLight(0xffffff, 1, 200)
+			flashlight.position.set(0,0,6)
+			flashlight.castShadow = true
+			flashlight.target = camera
+			camera.add(flashlight)
+			//camera.add(flashlight.target)
+			// flashlight.position.set(0,0,1)
+			// flashlight.lookAt(camera)
+			break
+		default:
+			break
 	}
+	const phi = THREE.MathUtils.degToRad( 90 - elevation);
+	const theta = THREE.MathUtils.degToRad( 180 );
+
+	sun.setFromSphericalCoords( 1, phi, theta );
+
+	uniforms[ 'sunPosition' ].value.copy( sun )
+
+	renderer.render(scene, camera)
 }
 
 function onWindowResize() {

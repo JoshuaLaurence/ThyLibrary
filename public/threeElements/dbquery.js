@@ -10,7 +10,7 @@ const URL = "https://thylibrary-backend.onrender.com"
 bookForm.addEventListener("submit", (event) => {
     const bodyData = {
         title: bookTitle.value,
-        author: author.value
+        author: author.value,
     }
     event.preventDefault()
     console.log("submitted")
