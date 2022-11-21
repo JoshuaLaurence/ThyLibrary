@@ -644,8 +644,9 @@ function changeDaylight(timeOfDay) {
 			uniforms["mieCoefficient"].value = 0.09
 			uniforms["mieDirectionalG"].value = 0.97
 			elevation = 40
-			renderer.toneMappingExposure = 1
-			light.power = 3;
+			renderer.toneMappingExposure = 0.75;
+			light.intensity = 1;
+			camera.remove(flashlight)
 			break
 		case "evening":
 			console.log("evening")
@@ -656,6 +657,7 @@ function changeDaylight(timeOfDay) {
 			elevation = 0.3
 			light.intensity = 0.7
 			renderer.toneMappingExposure = 0.5
+			camera.remove(flashlight)
 			break
 		case "night":
 			console.log("night")
@@ -666,7 +668,7 @@ function changeDaylight(timeOfDay) {
 			elevation = 30
 			light.intensity = 0.01
 			renderer.toneMappingExposure = 0.2
-			flashlight = new THREE.SpotLight(0xffffff, 1, 200)
+			flashlight = new THREE.SpotLight(0xffffff, 1, 350)
 			flashlight.position.set(0,0,6)
 			flashlight.castShadow = true
 			flashlight.target = camera
