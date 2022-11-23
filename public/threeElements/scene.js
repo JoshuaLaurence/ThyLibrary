@@ -574,6 +574,8 @@ function animate() {
 
 	time = performance.now()
 
+	checkTimeOfDay()
+
 	const delta = ( time - previousTime ) / 1000;
 
 	if(globalTimeOfDay === "night") {
@@ -649,6 +651,18 @@ function animate() {
 
 	renderer.render( scene, camera );
 
+}
+
+function checkTimeOfDay() {
+	const now = new Date()
+	const rightNow = now.getHours()
+	if (rightNow < 16 && rightNow > 5) {
+		changeDaylight("daylight")
+	} else if (rightNow > 16 && rightNow < 20) {
+		changeDaylight("evening")
+	} else {
+		changeDaylight("night")
+	}
 }
 
 function setSky() {
