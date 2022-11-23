@@ -189,6 +189,26 @@ body { margin: 0; overflow: hidden; width:100%; height: 100%;}
     opacity: 1;
 }
 
+.LoadingScreenTip {
+    width: 100%;
+    position: absolute;
+    height: 50px;
+    bottom: 0px;
+    font-size: 26px;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    animation: marquee 10s infinite ease-out
+}
+
+@keyframes marquee {
+    0% {
+        translate: 100%;
+    }
+    100% {
+        translate: -100%;
+    }
+}
+
 /* The SETTINGS Page */
 #SettingsPage {
     position: absolute;

@@ -43,6 +43,7 @@ const loadedButton = document.getElementsByClassName("LoadedButton")[0]
 const loadingBar = document.getElementById("ProgressBar")
 const loadingBarContainer = document.getElementById("ProgressBarContainer")
 const loadingString = document.getElementsByClassName("LoadingLabel")[0]
+const loadingTip = document.getElementsByClassName("LoadingScreenTip")[0]
 const permanentText = document.getElementsByClassName("PermanentTextBox")[0]
 const informationScreen = document.getElementById("InformationScreen")
 
@@ -62,6 +63,15 @@ const wittyLoadingMessages = [
 	"Running with scissors...",
 	"Reversing the shield polarity...",
 ]
+
+const wittyLoadingTips = [
+	"Does anyone actually read these?",
+	"All loading screens have been removed for your convenience",
+	"Did you know that tips are shown during the loading screen?",
+	"If everything breaks, which it may, refresh the page",
+	"Death is bad. Try to avoid it",
+	"Did you know if you close your tab, the website disappears?"
+]
 let loadingInterval;
 
 // document.addEventListener("visibilitychange", function(e) {
@@ -75,6 +85,7 @@ manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 		pauseMenu.style.display = "none"
 		loadedButton.style.display = "none"
 		loadingString.innerText = wittyLoadingMessages[Math.floor(Math.random() * wittyLoadingMessages.length)]
+		loadingTip.innerText = wittyLoadingTips[Math.floor(Math.random() * wittyLoadingTips.length)]
 		console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 	}
 };
@@ -87,6 +98,8 @@ manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 		loadingBar.style.width = `${total}%`
 		loadingBar.innerText = `${total}%`
 		console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+		console.log(loadingTip.position)
+
 	}
 };
 
