@@ -6,8 +6,8 @@
 - Walk around the library aether
 - Add books
 - View the description and genre of a book
+- Change the time of day
 
 #### Things Coming Soon...
 - Delete Books (Very Soon)
 - Visit amazon to rebuy said book
-- Change the time of day
