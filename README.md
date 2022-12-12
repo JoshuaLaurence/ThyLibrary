@@ -9,5 +9,5 @@
 - Change the time of day
 
 #### Things Coming Soon...
-- Delete Books (Very Soon)
+- Delete Books
 - Visit amazon to rebuy said book
