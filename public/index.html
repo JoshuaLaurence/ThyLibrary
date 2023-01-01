@@ -27,12 +27,24 @@
         <label class="LoadingScreenTip">TIP:</label>
         <div class="LoadingScreenInnerContainer">
             <label class="LoadingLabel">Loading...</label>
+            <input placeholder="Enter a username" class="username" id="username" onkeydown="usernameChanged(event)"/>
             <button class="LoadedButton">Start</button>
             <div id="ProgressBarContainer">
                 <div id="ProgressBar">1%</div>
             </div>
         </div>
     </div>
+    <script>
+
+        function usernameChanged(event) {
+            if (event.target.placeholder !== "Enter a username") {
+                event.target.placeholder = "Enter a username"
+                event.target.classList.remove("usernameRequired")
+            }
+            
+        }
+
+    </script>
 
     <div id="InformationScreen">
         <div class="InformationScreenInnerContainer">
@@ -76,6 +88,7 @@
             </form>
         </div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
     <script src="threeElements/scene.js" type="module"></script>
     <script src="threeElements/dbquery.js" type="module"></script>
 

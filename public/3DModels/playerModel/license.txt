@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cylinder Smiley face
+* source:	https://sketchfab.com/3d-models/cylinder-smiley-face-6acff60f30f64551983eb230aa69006a
+* author:	Po219 (https://sketchfab.com/Po219)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cylinder Smiley face" (https://sketchfab.com/3d-models/cylinder-smiley-face-6acff60f30f64551983eb230aa69006a) by Po219 (https://sketchfab.com/Po219) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
