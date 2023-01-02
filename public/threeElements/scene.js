@@ -153,6 +153,7 @@ function init() {
 					new THREE.BoxGeometry(1, 1, 1),
 					new THREE.MeshNormalMaterial()
 				);
+				player.scale.set(0.3, 0.3, 0.3);
 
 				player.userData = {
 					type: 'player',
@@ -161,6 +162,7 @@ function init() {
 				clients[_ids[i]] = {
 					mesh: player,
 					name: _allClients[_ids[i]].name,
+					currentlyReading: '',
 				};
 
 				//Add initial users to the scene
@@ -177,6 +179,14 @@ function init() {
 			if (Object.keys(_allClients)[i] != id) {
 				clients[Object.keys(_allClients)[i]].name =
 					_allClients[Object.keys(_allClients)[i]].name;
+			}
+		}
+	});
+	socket.on('usersReading', (_allClients) => {
+		for (let i = 0; i < Object.keys(_allClients).length; i++) {
+			if (Object.keys(_allClients)[i] != id) {
+				clients[Object.keys(_allClients)[i]].currentlyReading =
+					_allClients[Object.keys(_allClients)[i]].currentlyReading;
 			}
 		}
 	});
@@ -219,10 +229,12 @@ function init() {
 				new THREE.BoxGeometry(1, 1, 1),
 				new THREE.MeshNormalMaterial()
 			);
+			player.scale.set(0.3, 0.3, 0.3);
 			player.userData = { type: 'player', id: _id };
 			clients[_id] = {
 				mesh: player,
 				name: _allClients[_id].name,
+				currentlyReading: '',
 			};
 			scene.add(clients[_id].mesh);
 			raycasterObjects.push(clients[_id].mesh);
@@ -695,6 +707,7 @@ function displayInformationFetch(id) {
 }
 
 function displayInformation(data) {
+	socket.emit('currentlyReading', data.title);
 	const title = document.getElementsByClassName('InformationTitle')[0];
 	const author = document.getElementsByClassName('InformationAuthor')[0];
 	const genre = document.getElementsByClassName('InformationGenre')[0];
@@ -751,6 +764,7 @@ function moveBookToCamera(delta, object) {
 			//object.material.color.set('green');
 		} else {
 			controls.lock();
+			socket.emit('currentlyReading', '');
 			informationScreen.style.display = 'none';
 			moveToCamera[1] = 'toward';
 			moveToCamera[0] = false;
@@ -821,8 +835,22 @@ function animate() {
 				) {
 					INTERSECTED = true;
 					permanentText.classList.add('fadeIn');
-					permanentText.value =
-						clients[specificIntersection.object.userData.id].name;
+					if (
+						clients[specificIntersection.object.userData.id]
+							.currentlyReading !== ''
+					) {
+						permanentText.value =
+							clients[specificIntersection.object.userData.id]
+								.name +
+							' is currently reading: ' +
+							clients[specificIntersection.object.userData.id]
+								.currentlyReading;
+					} else {
+						permanentText.value =
+							clients[
+								specificIntersection.object.userData.id
+							].name;
+					}
 				}
 			} else {
 				if (specificIntersection.object.userData.type === 'Book') {
