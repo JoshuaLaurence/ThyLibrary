@@ -19,6 +19,7 @@ let moveForward = false,
 	moveBackward = false,
 	moveLeft = false,
 	moveRight = false;
+let theAudioListener = new THREE.AudioListener();
 let daytimeClock = new THREE.Clock();
 let daytimeCheck = 0;
 let globalTimeOfDay;
@@ -190,7 +191,7 @@ function init() {
 			}
 		}
 	});
-	socket.on('connect', () => {});
+	// socket.on('connect', () => {});
 	socket.on('userPositions', (_clientProps) => {
 		for (let i = 0; i < Object.keys(_clientProps).length; i++) {
 			if (Object.keys(_clientProps)[i] != id) {
@@ -242,6 +243,20 @@ function init() {
 		}
 	});
 
+	socket.on('reconstructBooks', (_id) => {
+		if (_id != id) {
+			console.log('reconstructing books');
+			fetch(`${URL}/books`, {
+				method: 'GET',
+			})
+				.then((res) => res.json())
+				.then((data) => {
+					constructBooks(data, true);
+				})
+				.catch((error) => console.log(error));
+		}
+	});
+
 	socket.on('userDisconnected', (clientCount, _id, _ids) => {
 		//Update the data from the server
 		if (_id != id) {
@@ -268,6 +283,7 @@ function init() {
 	);
 	camera.position.set(0, 1.5, -5);
 	camera.scale.set(0.1, 0.1, 0.1);
+	camera.add(theAudioListener);
 	controls = new PointerLockControls(camera, renderer.domElement);
 	controls.lock();
 	loadedButton.addEventListener('click', (event) => {
@@ -397,6 +413,7 @@ function init() {
 			controls.unlock();
 			e.preventDefault();
 			console.log('unloading');
+			socket.emit('disconnect');
 			return null;
 		},
 		{ capture: true }
@@ -598,18 +615,6 @@ function init() {
 	checkTimeOfDay();
 }
 
-function drawUsers(positions, id) {
-	for (let i = 0; i < Object.keys(positions).length; i++) {
-		if (Object.keys(positions)[i] != id) {
-			clients[i].position.set(
-				positions[Object.keys(positions)[i]].position[0],
-				positions[Object.keys(positions)[i]].position[1],
-				positions[Object.keys(positions)[i]].position[2]
-			);
-		}
-	}
-}
-
 function buildBooks() {
 	fetch(`${URL}/books`, {
 		method: 'GET',
@@ -664,6 +669,28 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 				title: data[i].title,
 			},
 		};
+
+		if (fromDBQuery && i === data.length - 1) {
+			const sound = new THREE.PositionalAudio(theAudioListener);
+
+			// load a sound and set it as the Audio object's buffer
+			const audioLoader = new THREE.AudioLoader();
+			audioLoader.load('../sounds/newBook.wav', function (buffer) {
+				sound.setBuffer(buffer);
+				sound.setLoop(true);
+				sound.setVolume(0.5);
+				sound.setRefDistance(1);
+				sound.setLoopStart(2);
+				sound.setLoopEnd(7);
+				sound.setRolloffFactor(1);
+				sound.setMaxDistance(5);
+				sound.play();
+				setTimeout(() => {
+					sound.stop();
+				}, 30000);
+			});
+			newObject.add(sound);
+		}
 
 		newObject.rotation.set(rotX, rotY, rotZ);
 		scene.add(newObject);
