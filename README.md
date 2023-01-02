@@ -1,6 +1,6 @@
 # ThyLibrary.io
 
-### Store all the books you've read in 3D!
+### A 3D library space for storing books!
 
 #### You can...
 - Walk around the library aether
