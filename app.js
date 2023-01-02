@@ -27,6 +27,12 @@ io.on('connection', (client) => {
 		clients[client.id].currentlyReading = book;
 		io.sockets.emit('usersReading', clients);
 	});
+
+	client.on('newBook', () => {
+		console.log('newBookAdded');
+		io.sockets.emit('reconstructBooks', client.id);
+	});
+
 	clients[client.id] = {
 		position: [0, 0, 0],
 		rotation: [0, 0, 0],
@@ -57,6 +63,7 @@ io.on('connection', (client) => {
 	client.on('disconnect', () => {
 		//Delete this client from the object
 		delete clients[client.id];
+		console.log(clients);
 
 		io.sockets.emit(
 			'userDisconnected',
