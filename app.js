@@ -22,10 +22,16 @@ io.on('connection', (client) => {
 		clients[client.id].name = name;
 		io.sockets.emit('newNames', clients);
 	});
+
+	client.on('currentlyReading', (book) => {
+		clients[client.id].currentlyReading = book;
+		io.sockets.emit('usersReading', clients);
+	});
 	clients[client.id] = {
 		position: [0, 0, 0],
 		rotation: [0, 0, 0],
 		name: 'Steve',
+		currentlyReading: '',
 	};
 	client.emit(
 		'introduction',
