@@ -28,9 +28,9 @@ io.on('connection', (client) => {
 		io.sockets.emit('usersReading', clients);
 	});
 
-	client.on('newBook', () => {
+	client.on('newBook', (data) => {
 		console.log('newBookAdded');
-		io.sockets.emit('reconstructBooks', client.id);
+		io.sockets.emit('reconstructBooks', client.id, data);
 	});
 
 	clients[client.id] = {

@@ -243,17 +243,9 @@ function init() {
 		}
 	});
 
-	socket.on('reconstructBooks', (_id) => {
+	socket.on('reconstructBooks', (_id, data) => {
 		if (_id != id) {
-			console.log('reconstructing books');
-			fetch(`${URL}/books`, {
-				method: 'GET',
-			})
-				.then((res) => res.json())
-				.then((data) => {
-					constructBooks(data, true);
-				})
-				.catch((error) => console.log(error));
+			constructBooks([data], true);
 		}
 	});
 
@@ -311,8 +303,10 @@ function init() {
 	});
 
 	informationScreen.addEventListener('click', (event) => {
-		moveToCamera[0] = true;
-		controls.lock();
+		if (event.target.id !== 'DeleteBookButton') {
+			moveToCamera[0] = true;
+			controls.lock();
+		}
 	});
 
 	settingsScreen.addEventListener('click', (event) => {
@@ -626,6 +620,27 @@ function buildBooks() {
 		.catch((error) => console.log(error));
 }
 
+export function deleteBookWithID(id) {
+	fetch(`${URL}/delete/${id}`, {
+		method: 'GET',
+	})
+		.then((res) => res.json())
+		.then((data) => {
+			console.log(data);
+			document.getElementById('hiddenBookId').value = '';
+		});
+	for (child in scene.children) {
+		console.log(scene.children);
+
+		// controls.lock();
+		// socket.emit('currentlyReading', '');
+		// informationScreen.style.display = 'none';
+		// moveToCamera[1] = 'toward';
+		// moveToCamera[0] = false;
+		// moveToCamera = moveToCamera.slice(0, 2);
+	}
+}
+
 export function constructBooks(data, fromDBQuery) {
 	if (fromDBQuery) {
 		startingLoad = false;
@@ -670,7 +685,7 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 			},
 		};
 
-		if (fromDBQuery && i === data.length - 1) {
+		if (fromDBQuery) {
 			const sound = new THREE.PositionalAudio(theAudioListener);
 
 			// load a sound and set it as the Audio object's buffer
@@ -689,6 +704,7 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 					sound.stop();
 				}, 30000);
 			});
+
 			newObject.add(sound);
 		}
 
@@ -696,6 +712,9 @@ function constructBooksLogic(data, fromDBQuery, bookObject) {
 		scene.add(newObject);
 		raycasterObjects.push(newObject);
 	}
+
+	console.log(scene.children);
+
 	if (startingLoad) {
 		clearInterval(loadingInterval);
 		loadedButton.style.display = 'block';
@@ -741,11 +760,13 @@ function displayInformation(data) {
 	const description = document.getElementsByClassName(
 		'InformationDescription'
 	)[0];
+	const hiddenID = document.getElementById('hiddenBookId');
 
 	title.innerHTML = data.title;
 	author.innerHTML = data.author;
 	genre.innerHTML = data.genre;
 	description.innerHTML = data.description;
+	hiddenID.value = data.id;
 }
 
 function moveBookToCamera(delta, object) {
@@ -793,6 +814,7 @@ function moveBookToCamera(delta, object) {
 			controls.lock();
 			socket.emit('currentlyReading', '');
 			informationScreen.style.display = 'none';
+			document.getElementById('hiddenBookId').value = '';
 			moveToCamera[1] = 'toward';
 			moveToCamera[0] = false;
 			moveToCamera = moveToCamera.slice(0, 2);

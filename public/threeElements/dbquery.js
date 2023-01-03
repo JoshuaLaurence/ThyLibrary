@@ -1,9 +1,11 @@
-import { constructBooks } from './scene.js';
+import { constructBooks, deleteBookWithID } from './scene.js';
 
 const bookContainer = document.getElementById('AddBookMenu');
 const bookForm = document.getElementById('AddBookForm');
 const bookTitle = document.getElementById('bookTitle'),
 	author = document.getElementById('author');
+
+const deleteBook = document.getElementById('DeleteBookButton');
 const URL = 'https://thylibrary-backend.onrender.com';
 
 const socket = io();
@@ -26,8 +28,16 @@ bookForm.addEventListener('submit', (event) => {
 		.then((data) => {
 			bookForm.reset();
 			bookContainer.style.display = 'none';
-			console.log(data);
-			socket.emit('newBook');
+			socket.emit('newBook', data);
 			constructBooks([data], true);
 		});
+});
+
+deleteBook.addEventListener('click', (event) => {
+	event.preventDefault();
+	if (event.target.innerText === 'Are you sure?') {
+		deleteBookWithID(document.getElementById('hiddenBookId').value);
+	} else {
+		event.target.innerText = 'Are you sure?';
+	}
 });

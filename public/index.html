@@ -48,10 +48,21 @@
 
     <div id="InformationScreen">
         <div class="InformationScreenInnerContainer">
+            <input type="hidden" id="hiddenBookId" value=""/>
             <label class="InformationTitle"></label>
             <label class="InformationAuthor"></label>
             <label class="InformationGenre"></label>
             <label class="InformationDescription"></label>
+            <button id="DeleteBookButton" onmouseleave="changeDeleteText(event)" style="z-index: 10;">Delete Book</button>
+            <script>
+
+                function changeDeleteText(event) {
+                    if (event.target.innerText === "Are you sure?") {
+                        event.target.innerText = "Delete Book"
+                    }
+                }
+        
+            </script>
         </div>
     </div>
 
